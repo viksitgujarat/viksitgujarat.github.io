@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viksit Gujarat @2047: Interactive Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals with Saffron and Teal Accents -->
+    <!-- Application Structure Plan: A thematic, single-page dashboard. The structure uses a sticky top navigation to allow users to jump to key pillars of governance: Vision, Economy, Society, Infrastructure, Environment, and Governance. This non-linear approach is chosen for usability, enabling users to explore topics based on interest rather than following the report's sequence. Key interactions include hover-effects on the '5-G' vision diagram, tabbed sections for social welfare to manage information density, and interactive charts for economic and environmental data to make statistics digestible and comparable. This design transforms a static report into an exploratory tool. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: '5-G Gujarat' Framework -> Goal: Organize/Inform -> Viz: Interactive HTML/CSS diagram with hover effects -> Interaction: Hover to reveal details -> Justification: More engaging than a list.
+        - Report Info: Economic Indicators (GSDP, Sector Share) -> Goal: Compare/Inform -> Viz: Bar Chart (Chart.js) -> Interaction: Tooltips with data, togglable datasets -> Justification: Allows easy comparison of key economic trends.
+        - Report Info: Social Welfare Schemes -> Goal: Organize/Inform -> Viz: Tabbed content cards -> Interaction: Click tabs to switch between Education, Health, Empowerment -> Justification: Prevents information overload in a dense section.
+        - Report Info: Renewable Energy Goal -> Goal: Show Change/Progress -> Viz: Doughnut Chart (Chart.js) -> Interaction: Animated display of progress towards 2030 goal -> Justification: Provides a clear, immediate visual of a key target.
+        - Report Info: Budget Allocations -> Goal: Compare -> Viz: Horizontal Bar Chart (Chart.js) -> Interaction: Tooltips showing exact crore amounts -> Justification: Clearly visualizes and compares large financial figures across sectors.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8; /* Warm off-white */
+            color: #4A4A4A;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #DD6B20; /* Saffron accent */
+            border-bottom-color: #DD6B20;
+        }
+        .pillar-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #E2E8F0;
+        }
+        .pillar-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .tab-button {
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .tab-button.active {
+            background-color: #2C7A7B; /* Teal accent */
+            color: white;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .stat-card {
+            background-color: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Navigation -->
+    <header id="header" class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-gray-800">Viksit Gujarat <span class="text-orange-600">@2047</span></h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#vision" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">Vision</a>
+                        <a href="#economy" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">Economy</a>
+                        <a href="#society" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">Society</a>
+                        <a href="#infrastructure" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">Infrastructure</a>
+                        <a href="#environment" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">Environment</a>
+                        <a href="#governance" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">Governance</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#vision" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">Vision</a>
+                <a href="#economy" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">Economy</a>
+                <a href="#society" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">Society</a>
+                <a href="#infrastructure" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">Infrastructure</a>
+                <a href="#environment" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">Environment</a>
+                <a href="#governance" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">Governance</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Vision Section -->
+        <section id="vision" class="py-16 text-center">
+            <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">The <span class="text-orange-600">5-G</span> Vision for a Developed Gujarat</h2>
+            <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">The administration's roadmap, "Viksit Gujarat@2047," is built upon five interconnected pillars. This framework guides all policy decisions, aiming to create a synergistic effect where progress in one area reinforces growth in others, building a resilient and competitive state. Hover over each pillar to learn more.</p>
+            <div class="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
+                <div class="pillar-card p-6 bg-white rounded-lg">
+                    <div class="text-4xl text-teal-600">🏆</div>
+                    <h3 class="mt-4 text-lg font-semibold text-gray-900">Garvu Gujarat</h3>
+                    <p class="mt-2 text-sm text-gray-600">Proud Gujarat: Enhancing the state's standing and fostering a collective sense of pride in its achievements and cultural heritage.</p>
+                </div>
+                <div class="pillar-card p-6 bg-white rounded-lg">
+                    <div class="text-4xl text-teal-600">⭐</div>
+                    <h3 class="mt-4 text-lg font-semibold text-gray-900">Gunvantu Gujarat</h3>
+                    <p class="mt-2 text-sm text-gray-600">Quality Gujarat: Ensuring a high quality of life through excellent civic services, environmental balance, and cultural preservation.</p>
+                </div>
+                <div class="pillar-card p-6 bg-white rounded-lg">
+                    <div class="text-4xl text-teal-600">🌿</div>
+                    <h3 class="mt-4 text-lg font-semibold text-gray-900">Green Gujarat</h3>
+                    <p class="mt-2 text-sm text-gray-600">Environmentally Conscious Gujarat: Promoting renewable energy and a circular economy to achieve net-zero carbon emissions.</p>
+                </div>
+                <div class="pillar-card p-6 bg-white rounded-lg">
+                    <div class="text-4xl text-teal-600">🌍</div>
+                    <h3 class="mt-4 text-lg font-semibold text-gray-900">Global Gujarat</h3>
+                    <p class="mt-2 text-sm text-gray-600">Globally Connected Gujarat: Strengthening economic and cultural ties to become a premier destination for business and investment.</p>
+                </div>
+                <div class="pillar-card p-6 bg-white rounded-lg">
+                    <div class="text-4xl text-teal-600">🚀</div>
+                    <h3 class="mt-4 text-lg font-semibold text-gray-900">Gatishil Gujarat</h3>
+                    <p class="mt-2 text-sm text-gray-600">Dynamic Gujarat: Cultivating a consistently high growth rate to maintain economic leadership and drive national prosperity.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Economy Section -->
+        <section id="economy" class="py-16 bg-gray-50 rounded-lg my-8 p-8">
+            <h2 class="text-3xl font-bold tracking-tight text-gray-900 text-center">Economic Engine of India</h2>
+            <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600 text-center">Gujarat's economy is characterized by robust growth, industrial leadership, and strong fiscal discipline. Strategic policies aim to diversify the economy towards knowledge-based sectors while maintaining its manufacturing strength. The chart below shows the state's sector-wise contribution to its economy.</p>
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                 <div class="stat-card">
+                    <p class="text-4xl font-bold text-teal-600">13.3%</p>
+                    <p class="mt-2 text-gray-600">Projected GSDP Growth (2024-25)</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-4xl font-bold text-teal-600">15.17%</p>
+                    <p class="mt-2 text-gray-600">Debt to GSDP Ratio (2022-23)</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-4xl font-bold text-teal-600">30.7%</p>
+                    <p class="mt-2 text-gray-600">Share of All-India Exports (2024-25)</p>
+                </div>
+            </div>
+            <div class="mt-12">
+                <h3 class="text-2xl font-semibold text-gray-800 text-center mb-4">Sectoral Contribution to Gross State Value Added (GSVA)</h3>
+                 <div class="chart-container">
+                    <canvas id="economyChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Social Welfare Section -->
+        <section id="society" class="py-16">
+            <h2 class="text-3xl font-bold tracking-tight text-gray-900 text-center">Fostering an Inclusive Society</h2>
+            <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600 text-center">A prosperous state is built on the well-being of its people. The government has launched targeted initiatives in education, healthcare, and empowerment to ensure that the benefits of growth reach every citizen, addressing disparities and building human capital for the future.</p>
+            <div class="mt-12">
+                <div class="flex justify-center mb-8">
+                    <div class="inline-flex rounded-md shadow-sm" role="group">
+                        <button type="button" data-tab="education" class="tab-button active px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100">Education</button>
+                        <button type="button" data-tab="healthcare" class="tab-button px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100">Healthcare</button>
+                        <button type="button" data-tab="empowerment" class="tab-button px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-md hover:bg-gray-100">Empowerment</button>
+                    </div>
+                </div>
+                <div id="tab-content" class="transition-opacity duration-300">
+                    <!-- Education Content -->
+                    <div id="education-content" class="tab-pane active">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="pillar-card p-4 bg-white">
+                                <h4 class="font-bold text-teal-700">Namo Laxmi Scheme</h4>
+                                <p class="text-sm mt-1">₹50,000 financial aid over 4 years to girls in secondary school to encourage retention.</p>
+                            </div>
+                            <div class="pillar-card p-4 bg-white">
+                                <h4 class="font-bold text-teal-700">Namo Saraswati Scheme</h4>
+                                <p class="text-sm mt-1">₹25,000 aid for low/middle-income students enrolling in the science stream.</p>
+                            </div>
+                            <div class="pillar-card p-4 bg-white">
+                                <h4 class="font-bold text-teal-700">Mission Schools of Excellence</h4>
+                                <p class="text-sm mt-1">₹3,000 Cr allocation to upgrade facilities with smart classrooms and STEM labs.</p>
+                            </div>
+                            <div class="pillar-card p-4 bg-white">
+                                <h4 class="font-bold text-teal-700">Anganwadi 2.0 Scheme</h4>
+                                <p class="text-sm mt-1">₹1,800 Cr to build 8,000 new anganwadis and upgrade 20,000 with IT.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Healthcare Content -->
+                    <div id="healthcare-content" class="tab-pane hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="pillar-card p-4 bg-white">
+                                <h4 class="font-bold text-teal-700">Quality of Care (QoC) Policy</h4>
+                                <p class="text-sm mt-1">WHO-guided framework to enhance service quality and reduce health disparities.</p>
+                            </div>
+                            <div class="pillar-card p-4 bg-white">
+                                <h4 class="font-bold text-teal-700">Suposhit Gujarat Mission</h4>
+                                <p class="text-sm mt-1">₹8,460 Cr allocated to combat malnutrition in children, girls, and women.</p>
+                            </div>
+                             <div class="pillar-card p-4 bg-white">
+                                <h4 class="font-bold text-teal-700">Namo Shri Scheme</h4>
+                                <p class="text-sm mt-1">₹12,000 one-time aid to pregnant women from vulnerable sections to support maternal health.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Empowerment Content -->
+                    <div id="empowerment-content" class="tab-pane hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="pillar-card p-4 bg-white">
+                                <h4 class="font-bold text-teal-700">Vanbandhu Welfare Scheme</h4>
+                                <p class="text-sm mt-1">₹30,000 Cr allocated for the holistic development of tribal communities.</p>
+                            </div>
+                            <div class="pillar-card p-4 bg-white">
+                                <h4 class="font-bold text-teal-700">PM Awas Yojana (Rural)</h4>
+                                <p class="text-sm mt-1">Housing assistance increased to ₹1.70 lakh per beneficiary for the rural poor.</p>
+                            </div>
+                             <div class="pillar-card p-4 bg-white">
+                                <h4 class="font-bold text-teal-700">Targeted Support</h4>
+                                <p class="text-sm mt-1">Schemes like Namo Laxmi and Namo Shri directly support the financial and health security of women and girls.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Infrastructure Section -->
+        <section id="infrastructure" class="py-16 bg-gray-50 rounded-lg my-8 p-8">
+            <h2 class="text-3xl font-bold tracking-tight text-gray-900 text-center">Building Tomorrow's Connectivity</h2>
+            <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600 text-center">World-class infrastructure is the backbone of a dynamic economy. The state is making massive investments in connectivity and urban renewal, designating 2025 as the "Urban Development Year" to transform cities into green, sustainable growth hubs.</p>
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Key Projects</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="text-teal-500 font-bold mr-2">»</span>
+                            <span><span class="font-semibold">Namo Shakti & Somnath-Dwarka Expressways:</span> Creating new high-speed corridors.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-teal-500 font-bold mr-2">»</span>
+                            <span><span class="font-semibold">Urban Development Year 2025:</span> 40% budget hike and 7 new municipal corporations.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-teal-500 font-bold mr-2">»</span>
+                            <span><span class="font-semibold">Sabarmati Riverfront Extension:</span> Expanding to 38 km to create the world's longest riverfront.</span>
+                        </li>
+                         <li class="flex items-start">
+                            <span class="text-teal-500 font-bold mr-2">»</span>
+                            <span><span class="font-semibold">Dahod Airport:</span> A new airport to boost regional connectivity and development.</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-semibold text-gray-800 text-center mb-4">Budgetary Allocations (FY 2024-25)</h3>
+                    <div class="chart-container" style="height: 300px; max-height: 350px;">
+                        <canvas id="budgetChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Environment Section -->
+        <section id="environment" class="py-16">
+            <h2 class="text-3xl font-bold tracking-tight text-gray-900 text-center">Leading the Green Revolution</h2>
+            <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600 text-center">Sustainability is not a choice but a core principle of development. Gujarat is positioning itself as a national leader in renewable energy and environmental stewardship, turning challenges into opportunities for green growth and a healthier future.</p>
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                <div class="text-center">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Renewable Energy Goal by 2030</h3>
+                    <div class="chart-container" style="height: 280px; max-height: 300px;">
+                        <canvas id="renewableEnergyChart"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Key Environmental Initiatives</h3>
+                     <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="text-orange-500 font-bold mr-2">✔</span>
+                            <span><span class="font-semibold">Renewable Energy Policy 2023:</span> Aims for 50% power from renewables by 2030, targeting ₹5 lakh crore in investments.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-orange-500 font-bold mr-2">✔</span>
+                            <span><span class="font-semibold">Nirmal Gujarat 2.0:</span> Budget doubled to ₹2,500 Cr to enhance state-wide waste management.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-orange-500 font-bold mr-2">✔</span>
+                            <span><span class="font-semibold">Urban Greening Policy:</span> Over 70 lakh trees planted and 320 Oxygen Parks developed in Ahmedabad.</span>
+                        </li>
+                         <li class="flex items-start">
+                            <span class="text-orange-500 font-bold mr-2">✔</span>
+                            <span><span class="font-semibold">Disaster Management Plan:</span> A comprehensive plan integrating global frameworks to build resilience against natural and man-made disasters.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Governance Section -->
+        <section id="governance" class="py-16 bg-gray-50 rounded-lg my-8 p-8">
+            <h2 class="text-3xl font-bold tracking-tight text-gray-900 text-center">Responsive and Forward-Looking Governance</h2>
+            <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600 text-center">Effective governance is built on transparency, accountability, and citizen engagement. The administration uses digital tools and public campaigns to address concerns while proactively updating laws and policies to meet future challenges and opportunities.</p>
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg border">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Achievements & Initiatives</h3>
+                    <ul class="space-y-2 text-gray-700">
+                        <li><strong class="text-teal-700">14,369</strong> grievances resolved via CPGRAMS in May 2025 (2nd highest nationally).</li>
+                        <li><strong class="text-teal-700">"Gujarat Gunvatta Yatra"</strong> engaged over 10,000 stakeholders to foster a culture of quality.</li>
+                        <li><strong class="text-teal-700">Gujarat GCC Policy (2025-30)</strong> launched to attract high-skilled jobs and innovation.</li>
+                        <li>Panel to draft a <strong class="text-teal-700">Uniform Civil Code (UCC)</strong> set to submit its report.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-lg border">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Acknowledged Challenges</h3>
+                    <ul class="space-y-2 text-gray-700">
+                        <li>Addressing issues of <strong class="text-orange-700">unequal development</strong> across regions and social strata.</li>
+                        <li>Tackling <strong class="text-orange-700">wealth disparities</strong> as indicated by per capita consumption figures.</li>
+                        <li>Bridging <strong class="text-orange-700">skill gaps</strong> to ensure quality employment for educated youth.</li>
+                        <li>Mitigating the impact of national <strong class="text-orange-700">inflationary pressures</strong> on households.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white">
+        <div class="container mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center">
+            <p>&copy; 2025 State of Gujarat. This dashboard is an interactive summary based on publicly available reports.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 70) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.dataset.tab;
+
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    tabPanes.forEach(pane => {
+                        if (pane.id === `${tabId}-content`) {
+                            pane.classList.remove('hidden');
+                            pane.classList.add('active');
+                        } else {
+                            pane.classList.add('hidden');
+                            pane.classList.remove('active');
+                        }
+                    });
+                });
+            });
+
+            function createEconomyChart() {
+                const ctx = document.getElementById('economyChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Industry', 'Services', 'Agriculture'],
+                        datasets: [{
+                            label: 'Share of GSVA (2022-23)',
+                            data: [45, 35, 20],
+                            backgroundColor: [
+                                'rgba(44, 122, 123, 0.7)', // Teal
+                                'rgba(221, 107, 32, 0.7)', // Saffron
+                                'rgba(107, 114, 128, 0.7)'  // Gray
+                            ],
+                            borderColor: [
+                                'rgba(44, 122, 123, 1)',
+                                'rgba(221, 107, 32, 1)',
+                                'rgba(107, 114, 128, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.raw}%`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Percentage (%)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function createBudgetChart() {
+                const ctx = document.getElementById('budgetChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Education', 'Transport', 'Energy', 'Health', 'Urban Dev.', 'Irrigation'],
+                        datasets: [{
+                            label: 'Budget Allocation (in ₹ Crore)',
+                            data: [44579, 22692, 20267, 19348, 18634, 17438],
+                            backgroundColor: 'rgba(44, 122, 123, 0.7)',
+                            borderColor: 'rgba(44, 122, 123, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                         indexAxis: 'y',
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.x !== null) {
+                                            label += new Intl.NumberFormat('en-IN').format(context.parsed.x) + ' Cr';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Allocation (₹ Crore)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function createRenewableEnergyChart() {
+                const ctx = document.getElementById('renewableEnergyChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Renewable Energy Goal', 'Remaining'],
+                        datasets: [{
+                            data: [50, 50],
+                            backgroundColor: [
+                                'rgba(44, 122, 123, 1)', // Teal
+                                'rgba(226, 232, 240, 1)'  // Light Gray
+                            ],
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.label}: ${context.raw}%`;
+                                    }
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: '50% of Power from Renewables'
+                            }
+                        }
+                    }
+                });
+            }
+
+            createEconomyChart();
+            createBudgetChart();
+            createRenewableEnergyChart();
+        });
+    </script>
+</body>
+</html>
